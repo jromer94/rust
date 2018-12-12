@@ -724,11 +724,12 @@ impl<'a, 'b> Context<'a, 'b> {
 pub fn expand_format_args<'cx>(ecx: &'cx mut ExtCtxt,
                                mut sp: Span,
                                tts: &[tokenstream::TokenTree])
-                               -> Box<dyn base::MacResult + 'cx> {
+                               -> MacroResult<'cx> {
     sp = sp.apply_mark(ecx.current_expansion.mark);
     match parse_args(ecx, sp, tts) {
         Some((efmt, args, names)) => {
-            MacEager::expr(expand_preparsed_format_args(ecx, sp, efmt, args, names, false))
+            MacroResult::Eager(
+                MacEager::expr(expand_preparsed_format_args(ecx, sp, efmt, args, names, false)))
         }
         None => DummyResult::expr(sp),
     }
@@ -738,7 +739,7 @@ pub fn expand_format_args_nl<'cx>(
     ecx: &'cx mut ExtCtxt,
     mut sp: Span,
     tts: &[tokenstream::TokenTree],
-) -> Box<dyn base::MacResult + 'cx> {
+) -> MacroResult<'cx> {
     //if !ecx.ecfg.enable_allow_internal_unstable() {
 
     // For some reason, the only one that actually works for `println` is the first check
@@ -756,7 +757,8 @@ pub fn expand_format_args_nl<'cx>(
     sp = sp.apply_mark(ecx.current_expansion.mark);
     match parse_args(ecx, sp, tts) {
         Some((efmt, args, names)) => {
-            MacEager::expr(expand_preparsed_format_args(ecx, sp, efmt, args, names, true))
+            MacroResult::Eager(
+                MacEager::expr(expand_preparsed_format_args(ecx, sp, efmt, args, names, true)))
         }
         None => DummyResult::expr(sp),
     }

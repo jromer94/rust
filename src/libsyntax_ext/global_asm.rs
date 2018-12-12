@@ -20,7 +20,6 @@
 
 use syntax::ast;
 use syntax::source_map::respan;
-use syntax::ext::base;
 use syntax::ext::base::*;
 use syntax::feature_gate;
 use syntax::ptr::P;
@@ -32,7 +31,7 @@ pub const MACRO: &str = "global_asm";
 
 pub fn expand_global_asm<'cx>(cx: &'cx mut ExtCtxt,
                               sp: Span,
-                              tts: &[tokenstream::TokenTree]) -> Box<dyn base::MacResult + 'cx> {
+                              tts: &[tokenstream::TokenTree]) -> MacroResult<'cx> {
     if !cx.ecfg.enable_global_asm() {
         feature_gate::emit_feature_err(&cx.parse_sess,
                                        MACRO,
@@ -50,7 +49,7 @@ pub fn expand_global_asm<'cx>(cx: &'cx mut ExtCtxt,
         None => return DummyResult::any(sp),
     };
 
-    MacEager::items(smallvec![P(ast::Item {
+    MacroResult::Eager(MacEager::items(smallvec![P(ast::Item {
         ident: ast::Ident::with_empty_ctxt(Symbol::intern("")),
         attrs: Vec::new(),
         id: ast::DUMMY_NODE_ID,
@@ -61,5 +60,5 @@ pub fn expand_global_asm<'cx>(cx: &'cx mut ExtCtxt,
         vis: respan(sp.shrink_to_lo(), ast::VisibilityKind::Inherited),
         span: sp,
         tokens: None,
-    })])
+    })]))
 }

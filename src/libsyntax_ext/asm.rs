@@ -15,7 +15,6 @@ use self::State::*;
 use rustc_data_structures::thin_vec::ThinVec;
 
 use syntax::ast;
-use syntax::ext::base;
 use syntax::ext::base::*;
 use syntax::feature_gate;
 use syntax::parse::{self, token};
@@ -52,7 +51,7 @@ const OPTIONS: &[&str] = &["volatile", "alignstack", "intel"];
 pub fn expand_asm<'cx>(cx: &'cx mut ExtCtxt,
                        sp: Span,
                        tts: &[tokenstream::TokenTree])
-                       -> Box<dyn base::MacResult + 'cx> {
+                       -> MacroResult<'cx> {
     if !cx.ecfg.enable_asm() {
         feature_gate::emit_feature_err(&cx.parse_sess,
                                        "asm",
@@ -251,7 +250,7 @@ pub fn expand_asm<'cx>(cx: &'cx mut ExtCtxt,
         volatile = true;
     }
 
-    MacEager::expr(P(ast::Expr {
+    MacroResult::Eager(MacEager::expr(P(ast::Expr {
         id: ast::DUMMY_NODE_ID,
         node: ast::ExprKind::InlineAsm(P(ast::InlineAsm {
             asm,
@@ -266,5 +265,5 @@ pub fn expand_asm<'cx>(cx: &'cx mut ExtCtxt,
         })),
         span: sp,
         attrs: ThinVec::new(),
-    }))
+    })))
 }
