@@ -15,7 +15,7 @@ use ast;
 use ast::{Ident, Name};
 use source_map;
 use syntax_pos::Span;
-use ext::base::{ExtCtxt, MacEager, MacResult};
+use ext::base::{ExtCtxt, MacEager, MacroResult};
 use ext::build::AstBuilder;
 use parse::token;
 use ptr::P;
@@ -41,7 +41,7 @@ pub type ErrorMap = BTreeMap<Name, ErrorInfo>;
 pub fn expand_diagnostic_used<'cx>(ecx: &'cx mut ExtCtxt,
                                    span: Span,
                                    token_tree: &[TokenTree])
-                                   -> Box<dyn MacResult+'cx> {
+                                   -> MacroResult<'cx> {
     let code = match (token_tree.len(), token_tree.get(0)) {
         (1, Some(&TokenTree::Token(_, token::Ident(code, _)))) => code,
         _ => unreachable!()
@@ -68,13 +68,13 @@ pub fn expand_diagnostic_used<'cx>(ecx: &'cx mut ExtCtxt,
             }
         }
     });
-    MacEager::expr(ecx.expr_tuple(span, Vec::new()))
+    MacroResult::Eager(MacEager::expr(ecx.expr_tuple(span, Vec::new())))
 }
 
 pub fn expand_register_diagnostic<'cx>(ecx: &'cx mut ExtCtxt,
                                        span: Span,
                                        token_tree: &[TokenTree])
-                                       -> Box<dyn MacResult+'cx> {
+                                       -> MacroResult<'cx> {
     let (code, description) = match (
         token_tree.len(),
         token_tree.get(0),
@@ -130,21 +130,23 @@ pub fn expand_register_diagnostic<'cx>(ecx: &'cx mut ExtCtxt,
     let sym = Ident::with_empty_ctxt(Symbol::gensym(&format!(
         "__register_diagnostic_{}", code
     )));
-    MacEager::items(smallvec![
-        ecx.item_mod(
-            span,
-            span,
-            sym,
-            Vec::new(),
-            Vec::new()
-        )
-    ])
+    MacroResult::Eager(
+        MacEager::items(smallvec![
+            ecx.item_mod(
+                span,
+                span,
+                sym,
+                Vec::new(),
+                Vec::new()
+            )
+        ])
+    )
 }
 
 pub fn expand_build_diagnostic_array<'cx>(ecx: &'cx mut ExtCtxt,
                                           span: Span,
                                           token_tree: &[TokenTree])
-                                          -> Box<dyn MacResult+'cx> {
+                                          -> MacroResult<'cx> {
     assert_eq!(token_tree.len(), 3);
     let (crate_name, name) = match (&token_tree[0], &token_tree[2]) {
         (
@@ -213,18 +215,20 @@ pub fn expand_build_diagnostic_array<'cx>(ecx: &'cx mut ExtCtxt,
         ),
     );
 
-    MacEager::items(smallvec![
-        P(ast::Item {
-            ident: *name,
-            attrs: Vec::new(),
-            id: ast::DUMMY_NODE_ID,
-            node: ast::ItemKind::Const(
-                ty,
-                expr,
-            ),
-            vis: source_map::respan(span.shrink_to_lo(), ast::VisibilityKind::Public),
-            span,
-            tokens: None,
-        })
-    ])
+    MacroResult::Eager(
+        MacEager::items(smallvec![
+            P(ast::Item {
+                ident: *name,
+                attrs: Vec::new(),
+                id: ast::DUMMY_NODE_ID,
+                node: ast::ItemKind::Const(
+                    ty,
+                    expr,
+                ),
+                vis: source_map::respan(span.shrink_to_lo(), ast::VisibilityKind::Public),
+                span,
+                tokens: None,
+            })
+        ])
+    )
 }

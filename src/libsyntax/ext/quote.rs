@@ -11,8 +11,7 @@
 use ast::{self, Arg, Arm, Block, Expr, Item, Pat, Stmt, Ty};
 use source_map::respan;
 use syntax_pos::{Span, DUMMY_SP};
-use ext::base::ExtCtxt;
-use ext::base;
+use ext::base::{self, ExtCtxt, MacroResult};
 use ext::build::AstBuilder;
 use parse::parser::{Parser, PathStyle};
 use parse::token;
@@ -455,101 +454,101 @@ pub fn parse_path_panic(parser: &mut Parser, mode: PathStyle) -> ast::Path {
 pub fn expand_quote_tokens<'cx>(cx: &'cx mut ExtCtxt,
                                 sp: Span,
                                 tts: &[TokenTree])
-                                -> Box<dyn base::MacResult+'cx> {
+                                -> MacroResult<'cx> {
     let (cx_expr, expr) = expand_tts(cx, sp, tts);
     let expanded = expand_wrapper(cx, sp, cx_expr, expr, &[&["syntax", "ext", "quote", "rt"]]);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_expr<'cx>(cx: &'cx mut ExtCtxt,
                               sp: Span,
                               tts: &[TokenTree])
-                              -> Box<dyn base::MacResult+'cx> {
+                              -> MacroResult<'cx> {
     let expanded = expand_parse_call(cx, sp, "parse_expr_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_item<'cx>(cx: &'cx mut ExtCtxt,
                               sp: Span,
                               tts: &[TokenTree])
-                              -> Box<dyn base::MacResult+'cx> {
+                              -> MacroResult<'cx> {
     let expanded = expand_parse_call(cx, sp, "parse_item_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_pat<'cx>(cx: &'cx mut ExtCtxt,
                              sp: Span,
                              tts: &[TokenTree])
-                             -> Box<dyn base::MacResult+'cx> {
+                             -> MacroResult<'cx> {
     let expanded = expand_parse_call(cx, sp, "parse_pat_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_arm(cx: &mut ExtCtxt,
                         sp: Span,
                         tts: &[TokenTree])
-                        -> Box<dyn base::MacResult+'static> {
+                        -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_arm_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_ty(cx: &mut ExtCtxt,
                        sp: Span,
                        tts: &[TokenTree])
-                       -> Box<dyn base::MacResult+'static> {
+                       -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_ty_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_stmt(cx: &mut ExtCtxt,
                          sp: Span,
                          tts: &[TokenTree])
-                         -> Box<dyn base::MacResult+'static> {
+                         -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_stmt_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_attr(cx: &mut ExtCtxt,
                          sp: Span,
                          tts: &[TokenTree])
-                         -> Box<dyn base::MacResult+'static> {
+                         -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_attribute_panic",
                                     vec![cx.expr_bool(sp, true)], tts);
 
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_arg(cx: &mut ExtCtxt,
                         sp: Span,
                         tts: &[TokenTree])
-                        -> Box<dyn base::MacResult+'static> {
+                        -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_arg_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_block(cx: &mut ExtCtxt,
                         sp: Span,
                         tts: &[TokenTree])
-                        -> Box<dyn base::MacResult+'static> {
+                        -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_block_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_meta_item(cx: &mut ExtCtxt,
                         sp: Span,
                         tts: &[TokenTree])
-                        -> Box<dyn base::MacResult+'static> {
+                        -> MacroResult<'static> {
     let expanded = expand_parse_call(cx, sp, "parse_meta_item_panic", vec![], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 pub fn expand_quote_path(cx: &mut ExtCtxt,
                         sp: Span,
                         tts: &[TokenTree])
-                        -> Box<dyn base::MacResult+'static> {
+                        -> MacroResult<'static> {
     let mode = mk_parser_path(cx, sp, &["PathStyle", "Type"]);
     let expanded = expand_parse_call(cx, sp, "parse_path_panic", vec![mode], tts);
-    base::MacEager::expr(expanded)
+    MacroResult::Eager(base::MacEager::expr(expanded))
 }
 
 fn ids_ext(strs: Vec<String>) -> Vec<ast::Ident> {
